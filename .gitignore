@@ -1,52 +1,35 @@
-# Prerequisites
-*.d
+# SVN files
+.svn*
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# EMACS temp files
+*~
 
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
+# Compiled source files
+*.com
+*.class
 *.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
 *.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+*.o
+*.so
+*.pyc
+*.bin
+*.ld
+*.swo
+*.swp
 
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumps.db
+build.info
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Vivado Build
+build*
+
+# Only .bit.gz and .mcs.gz should be committed to git
+*.bit
+*.mcs
