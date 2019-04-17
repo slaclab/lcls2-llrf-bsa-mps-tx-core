@@ -29,7 +29,7 @@ entity BsaMspMsgTxCore is
       -- BSA/MPS Interface (usrClk domain)
       usrClk        : in  sl;           -- Must be > 45 MHz
       usrRst        : in  sl;
-      timingStrobe  : in  sl;           -- 1MHz strobe, single cycle
+      timingStrobe  : in  sl;           -- ~1MHz strobe, single cycle
       timeStamp     : in  slv(63 downto 0);
       userValue     : in  slv(127 downto 0);
       bsaQuantity0  : in  slv(31 downto 0);
