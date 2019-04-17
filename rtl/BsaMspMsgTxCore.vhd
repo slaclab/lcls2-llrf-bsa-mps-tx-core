@@ -26,8 +26,8 @@ entity BsaMspMsgTxCore is
       SIM_GTRESET_SPEEDUP_G : string     := "FALSE";
       SIMULATION_G          : boolean    := false);
    port (
-      -- BSA/MPS Interface
-      usrClk        : in  sl;
+      -- BSA/MPS Interface (usrClk domain)
+      usrClk        : in  sl;           -- Must be > 45 MHz
       usrRst        : in  sl;
       timingStrobe  : in  sl;           -- 1MHz strobe, single cycle
       timeStamp     : in  slv(63 downto 0);
