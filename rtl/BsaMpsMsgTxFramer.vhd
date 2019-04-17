@@ -27,28 +27,19 @@ entity BsaMpsMsgTxFramer is
       TPD_G : time := 1 ns);
    port (
       -- BSA/MPS Interface (usrClk domain)
-      usrClk        : in  sl;
-      usrRst        : in  sl;
-      timingStrobe  : in  sl;
-      timeStamp     : in  slv(63 downto 0);
-      bsaQuantity0  : in  slv(31 downto 0);
-      bsaQuantity1  : in  slv(31 downto 0);
-      bsaQuantity2  : in  slv(31 downto 0);
-      bsaQuantity3  : in  slv(31 downto 0);
-      bsaQuantity4  : in  slv(31 downto 0);
-      bsaQuantity5  : in  slv(31 downto 0);
-      bsaQuantity6  : in  slv(31 downto 0);
-      bsaQuantity7  : in  slv(31 downto 0);
-      bsaQuantity8  : in  slv(31 downto 0);
-      bsaQuantity9  : in  slv(31 downto 0);
-      bsaQuantity10 : in  slv(31 downto 0);
-      bsaQuantity11 : in  slv(31 downto 0);
-      mpsPermit     : in  slv(3 downto 0);
+      usrClk       : in  sl;
+      usrRst       : in  sl;
+      timingStrobe : in  sl;
+      timeStamp    : in  slv(63 downto 0);
+      userValue    : in  slv(127 downto 0);
+      bsaQuantity  : in  Slv32Array(11 downto 0);
+      bsaSevr      : in  Slv2Array(11 downto 0);
+      mpsPermit    : in  slv(3 downto 0);
       -- TX Data Interface (txClk domain)
-      txClk         : in  sl;
-      txRst         : in  sl;
-      txData        : out slv(15 downto 0);
-      txDataK       : out slv(1 downto 0));
+      txClk        : in  sl;
+      txRst        : in  sl;
+      txData       : out slv(15 downto 0);
+      txDataK      : out slv(1 downto 0));
 end BsaMpsMsgTxFramer;
 
 architecture rtl of BsaMpsMsgTxFramer is
@@ -101,28 +92,19 @@ begin
          TPD_G => TPD_G)
       port map (
          -- BSA/MPS Interface
-         usrClk        => usrClk,
-         usrRst        => usrRst,
-         timingStrobe  => timingStrobe,
-         timeStamp     => timeStamp,
-         bsaQuantity0  => bsaQuantity0,
-         bsaQuantity1  => bsaQuantity1,
-         bsaQuantity2  => bsaQuantity2,
-         bsaQuantity3  => bsaQuantity3,
-         bsaQuantity4  => bsaQuantity4,
-         bsaQuantity5  => bsaQuantity5,
-         bsaQuantity6  => bsaQuantity6,
-         bsaQuantity7  => bsaQuantity7,
-         bsaQuantity8  => bsaQuantity8,
-         bsaQuantity9  => bsaQuantity9,
-         bsaQuantity10 => bsaQuantity10,
-         bsaQuantity11 => bsaQuantity11,
-         mpsPermit     => mpsPermit,
+         usrClk       => usrClk,
+         usrRst       => usrRst,
+         timingStrobe => timingStrobe,
+         timeStamp    => timeStamp,
+         userValue    => userValue,
+         bsaQuantity  => bsaQuantity,
+         bsaSevr      => bsaSevr,
+         mpsPermit    => mpsPermit,
          -- TX Data Interface
-         txClk         => txClk,
-         txRst         => txRst,
-         mAxisMaster   => sAxisMaster,
-         mAxisSlave    => sAxisSlave);
+         txClk        => txClk,
+         txRst        => txRst,
+         mAxisMaster  => sAxisMaster,
+         mAxisSlave   => sAxisSlave);
 
    comb : process (crcResult, r, sAxisMaster, txRst) is
       variable v : RegType;

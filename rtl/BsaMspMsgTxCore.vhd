@@ -31,6 +31,7 @@ entity BsaMspMsgTxCore is
       usrRst        : in  sl;
       timingStrobe  : in  sl;           -- 1MHz strobe, single cycle
       timeStamp     : in  slv(63 downto 0);
+      userValue     : in  slv(127 downto 0);
       bsaQuantity0  : in  slv(31 downto 0);
       bsaQuantity1  : in  slv(31 downto 0);
       bsaQuantity2  : in  slv(31 downto 0);
@@ -43,6 +44,18 @@ entity BsaMspMsgTxCore is
       bsaQuantity9  : in  slv(31 downto 0);
       bsaQuantity10 : in  slv(31 downto 0);
       bsaQuantity11 : in  slv(31 downto 0);
+      bsaSevr0      : in  slv(1 downto 0);
+      bsaSevr1      : in  slv(1 downto 0);
+      bsaSevr2      : in  slv(1 downto 0);
+      bsaSevr3      : in  slv(1 downto 0);
+      bsaSevr4      : in  slv(1 downto 0);
+      bsaSevr5      : in  slv(1 downto 0);
+      bsaSevr6      : in  slv(1 downto 0);
+      bsaSevr7      : in  slv(1 downto 0);
+      bsaSevr8      : in  slv(1 downto 0);
+      bsaSevr9      : in  slv(1 downto 0);
+      bsaSevr10     : in  slv(1 downto 0);
+      bsaSevr11     : in  slv(1 downto 0);
       mpsPermit     : in  slv(3 downto 0);
       -- GTX's Clock and Reset
       cPllRefClk    : in  sl;           -- 185.714 MHz 
@@ -77,28 +90,41 @@ begin
          TPD_G => TPD_G)
       port map (
          -- BSA/MPS Interface (usrClk domain)
-         usrClk        => usrClk,
-         usrRst        => usrRst,
-         timingStrobe  => timingStrobe,
-         timeStamp     => timeStamp,
-         bsaQuantity0  => bsaQuantity0,
-         bsaQuantity1  => bsaQuantity1,
-         bsaQuantity2  => bsaQuantity2,
-         bsaQuantity3  => bsaQuantity3,
-         bsaQuantity4  => bsaQuantity4,
-         bsaQuantity5  => bsaQuantity5,
-         bsaQuantity6  => bsaQuantity6,
-         bsaQuantity7  => bsaQuantity7,
-         bsaQuantity8  => bsaQuantity8,
-         bsaQuantity9  => bsaQuantity9,
-         bsaQuantity10 => bsaQuantity10,
-         bsaQuantity11 => bsaQuantity11,
-         mpsPermit     => mpsPermit,
+         usrClk          => usrClk,
+         usrRst          => usrRst,
+         timingStrobe    => timingStrobe,
+         timeStamp       => timeStamp,
+         userValue       => userValue,
+         bsaQuantity(0)  => bsaQuantity0,
+         bsaQuantity(1)  => bsaQuantity1,
+         bsaQuantity(2)  => bsaQuantity2,
+         bsaQuantity(3)  => bsaQuantity3,
+         bsaQuantity(4)  => bsaQuantity4,
+         bsaQuantity(5)  => bsaQuantity5,
+         bsaQuantity(6)  => bsaQuantity6,
+         bsaQuantity(7)  => bsaQuantity7,
+         bsaQuantity(8)  => bsaQuantity8,
+         bsaQuantity(9)  => bsaQuantity9,
+         bsaQuantity(10) => bsaQuantity10,
+         bsaQuantity(11) => bsaQuantity11,
+         bsaSevr(0)      => bsaSevr0,
+         bsaSevr(1)      => bsaSevr1,
+         bsaSevr(2)      => bsaSevr2,
+         bsaSevr(3)      => bsaSevr3,
+         bsaSevr(4)      => bsaSevr4,
+         bsaSevr(5)      => bsaSevr5,
+         bsaSevr(6)      => bsaSevr6,
+         bsaSevr(7)      => bsaSevr7,
+         bsaSevr(8)      => bsaSevr8,
+         bsaSevr(9)      => bsaSevr9,
+         bsaSevr(10)     => bsaSevr10,
+         bsaSevr(11)     => bsaSevr11,
+         mpsPermit       => mpsPermit,
          -- TX Data Interface (txClk domain)
-         txClk         => txClk,
-         txRst         => txRst,
-         txData        => txData,
-         txdataK       => txdataK);
+         txClk           => txClk,
+         txRst           => txRst,
+         txData          => txData,
+         txdataK         => txdataK);
 
    -------------
    -- GTX Module

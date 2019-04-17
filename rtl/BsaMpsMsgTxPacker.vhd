@@ -27,28 +27,19 @@ entity BsaMpsMsgTxPacker is
       TPD_G : time := 1 ns);
    port (
       -- BSA/MPS Interface
-      usrClk        : in  sl;
-      usrRst        : in  sl;
-      timingStrobe  : in  sl;
-      timeStamp     : in  slv(63 downto 0);
-      bsaQuantity0  : in  slv(31 downto 0);
-      bsaQuantity1  : in  slv(31 downto 0);
-      bsaQuantity2  : in  slv(31 downto 0);
-      bsaQuantity3  : in  slv(31 downto 0);
-      bsaQuantity4  : in  slv(31 downto 0);
-      bsaQuantity5  : in  slv(31 downto 0);
-      bsaQuantity6  : in  slv(31 downto 0);
-      bsaQuantity7  : in  slv(31 downto 0);
-      bsaQuantity8  : in  slv(31 downto 0);
-      bsaQuantity9  : in  slv(31 downto 0);
-      bsaQuantity10 : in  slv(31 downto 0);
-      bsaQuantity11 : in  slv(31 downto 0);
-      mpsPermit     : in  slv(3 downto 0);
+      usrClk       : in  sl;
+      usrRst       : in  sl;
+      timingStrobe : in  sl;            -- 1MHz strobe, single cycle
+      timeStamp    : in  slv(63 downto 0);
+      userValue    : in  slv(127 downto 0);
+      bsaQuantity  : in  Slv32Array(11 downto 0);
+      bsaSevr      : in  Slv2Array(11 downto 0);
+      mpsPermit    : in  slv(3 downto 0);
       -- TX Data Interface
-      txClk         : in  sl;
-      txRst         : in  sl;
-      mAxisMaster   : out AxiStreamMasterType;
-      mAxisSlave    : in  AxiStreamSlaveType);
+      txClk        : in  sl;
+      txRst        : in  sl;
+      mAxisMaster  : out AxiStreamMasterType;
+      mAxisSlave   : in  AxiStreamSlaveType);
 end BsaMpsMsgTxPacker;
 
 architecture rtl of BsaMpsMsgTxPacker is
@@ -57,15 +48,20 @@ architecture rtl of BsaMpsMsgTxPacker is
 
    type StateType is (
       IDLE_S,
+      VERSION_S,
+      USER_S,
       TS_S,
-      BSA_S,
-      MPS_S);
+      MPS_S,
+      BSA_SEVR_S,
+      BSA_DATA_S);
 
    type RegType is record
       mpsPermit   : slv(3 downto 0);
       timeStamp   : slv(63 downto 0);
+      userValue   : slv(127 downto 0);
       bsaQuantity : Slv32Array(11 downto 0);
-      wrd         : natural range 0 to 3;
+      bsaSevr     : Slv2Array(11 downto 0);
+      wrd         : natural range 0 to 7;
       cnt         : natural range 0 to 11;
       txMaster    : AxiStreamMasterType;
       state       : StateType;
@@ -73,7 +69,9 @@ architecture rtl of BsaMpsMsgTxPacker is
    constant REG_INIT_C : RegType := (
       mpsPermit   => (others => '0'),
       timeStamp   => (others => '0'),
+      userValue   => (others => '0'),
       bsaQuantity => (others => (others => '0')),
+      bsaSevr     => (others => (others => '0')),
       wrd         => 0,
       cnt         => 0,
       txMaster    => AXI_STREAM_MASTER_INIT_C,
@@ -86,10 +84,8 @@ architecture rtl of BsaMpsMsgTxPacker is
 
 begin
 
-   comb : process (bsaQuantity0, bsaQuantity1, bsaQuantity10, bsaQuantity11,
-                   bsaQuantity2, bsaQuantity3, bsaQuantity4, bsaQuantity5,
-                   bsaQuantity6, bsaQuantity7, bsaQuantity8, bsaQuantity9,
-                   mpsPermit, r, timeStamp, timingStrobe, txSlave, usrRst) is
+   comb : process (bsaQuantity, bsaSevr, mpsPermit, r, timeStamp, timingStrobe,
+                   txSlave, userValue, usrRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -109,35 +105,42 @@ begin
             -- Check the timing strobe
             if (timingStrobe = '1') then
                -- Saves the values
-               v.timeStamp       := timeStamp;
-               v.bsaQuantity(0)  := bsaQuantity0;
-               v.bsaQuantity(1)  := bsaQuantity1;
-               v.bsaQuantity(2)  := bsaQuantity2;
-               v.bsaQuantity(3)  := bsaQuantity3;
-               v.bsaQuantity(4)  := bsaQuantity4;
-               v.bsaQuantity(5)  := bsaQuantity5;
-               v.bsaQuantity(6)  := bsaQuantity6;
-               v.bsaQuantity(7)  := bsaQuantity7;
-               v.bsaQuantity(8)  := bsaQuantity8;
-               v.bsaQuantity(9)  := bsaQuantity9;
-               v.bsaQuantity(10) := bsaQuantity10;
-               v.bsaQuantity(11) := bsaQuantity11;
-               v.mpsPermit       := mpsPermit;
+               v.timeStamp   := timeStamp;
+               v.userValue   := userValue;
+               v.bsaQuantity := bsaQuantity;
+               v.bsaSevr     := bsaSevr;
+               v.mpsPermit   := mpsPermit;
                -- Next State
-               v.state           := MPS_S;
+               v.state       := VERSION_S;
             end if;
          ----------------------------------------------------------------------
-         when MPS_S =>
+         when VERSION_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Move the data
-               v.txMaster.tValid              := '1';
-               v.txMaster.tData(7 downto 0)   := x"00";
-               v.txMaster.tData(11 downto 8)  := r.mpsPermit;
-               v.txMaster.tData(15 downto 12) := x"0";
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(15 downto 0) := x"0001";  -- Version 1
                ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
                -- Next State
-               v.state                        := TS_S;
+               v.state                       := USER_S;
+            end if;
+         ----------------------------------------------------------------------
+         when USER_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move the data
+               v.txMaster.tValid             := '1';
+               v.txMaster.tData(15 downto 0) := r.userValue((r.wrd*16)+15 downto (r.wrd*16));
+               -- Check the counter
+               if (r.wrd = 7) then
+                  -- Reset the counter
+                  v.wrd   := 0;
+                  -- Next State
+                  v.state := TS_S;
+               else
+                  -- Increment the counter
+                  v.wrd := r.wrd + 1;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when TS_S =>
@@ -151,14 +154,46 @@ begin
                   -- Reset the counter
                   v.wrd   := 0;
                   -- Next State
-                  v.state := BSA_S;
+                  v.state := MPS_S;
                else
                   -- Increment the counter
                   v.wrd := r.wrd + 1;
                end if;
             end if;
          ----------------------------------------------------------------------
-         when BSA_S =>
+         when MPS_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move the data
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(3 downto 0)   := r.mpsPermit;
+               v.txMaster.tData(5 downto 4)   := r.bsaSevr(0);
+               v.txMaster.tData(7 downto 6)   := r.bsaSevr(1);
+               v.txMaster.tData(9 downto 8)   := r.bsaSevr(2);
+               v.txMaster.tData(11 downto 10) := r.bsaSevr(3);
+               v.txMaster.tData(13 downto 12) := r.bsaSevr(4);
+               v.txMaster.tData(15 downto 14) := r.bsaSevr(5);
+               -- Next State
+               v.state                        := BSA_SEVR_S;
+            end if;
+         ----------------------------------------------------------------------
+         when BSA_SEVR_S =>
+            -- Check if ready to move data
+            if (v.txMaster.tValid = '0') then
+               -- Move the data
+               v.txMaster.tValid              := '1';
+               v.txMaster.tData(3 downto 0)   := x"0"; -- Spare field
+               v.txMaster.tData(5 downto 4)   := r.bsaSevr(6);
+               v.txMaster.tData(7 downto 6)   := r.bsaSevr(7);
+               v.txMaster.tData(9 downto 8)   := r.bsaSevr(8);
+               v.txMaster.tData(11 downto 10) := r.bsaSevr(9);
+               v.txMaster.tData(13 downto 12) := r.bsaSevr(10);
+               v.txMaster.tData(15 downto 14) := r.bsaSevr(11);
+               -- Next State
+               v.state                        := BSA_DATA_S;
+            end if;
+         ----------------------------------------------------------------------
+         when BSA_DATA_S =>
             -- Check if ready to move data
             if (v.txMaster.tValid = '0') then
                -- Move the data
@@ -205,19 +240,19 @@ begin
       end if;
    end process seq;
 
-   U_Fifo : entity work.AxiStreamFifoV2
+   U_StoreThenForward : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 0,      -- 0 = only when frame ready
+         VALID_THOLD_G       => 0,      -- 0 = only when frame ready (prevent tValid gap in outbound frame)
          -- FIFO configurations
-         BRAM_EN_G           => false,
+         BRAM_EN_G           => true,
          GEN_SYNC_FIFO_G     => false,
          CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 6,      -- requires min. 29 deep FIFO
+         FIFO_ADDR_WIDTH_G   => 9,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
