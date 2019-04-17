@@ -82,10 +82,13 @@ architecture rtl of BsaMpsMsgTxPacker is
 
    signal txSlave : AxiStreamSlaveType;
 
+   signal txRstSync : sl;
+   signal usrReset  : sl;
+
 begin
 
    comb : process (bsaQuantity, bsaSevr, mpsPermit, r, timeStamp, timingStrobe,
-                   txSlave, userValue, usrRst) is
+                   txSlave, userValue, usrReset) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -119,7 +122,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move the data
                v.txMaster.tValid             := '1';
-               v.txMaster.tData(15 downto 0) := x"0001";  -- Version 1
+               v.txMaster.tData(15 downto 8) := x"01";  -- Version 1
                ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
                -- Next State
                v.state                       := USER_S;
@@ -182,7 +185,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move the data
                v.txMaster.tValid              := '1';
-               v.txMaster.tData(3 downto 0)   := x"0"; -- Spare field
+               v.txMaster.tData(3 downto 0)   := x"0";  -- Spare field
                v.txMaster.tData(5 downto 4)   := r.bsaSevr(6);
                v.txMaster.tData(7 downto 6)   := r.bsaSevr(7);
                v.txMaster.tData(9 downto 8)   := r.bsaSevr(8);
@@ -224,7 +227,7 @@ begin
       end case;
 
       -- Reset
-      if (usrRst = '1') then
+      if (usrReset = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -240,19 +243,26 @@ begin
       end if;
    end process seq;
 
+   U_RstSync : entity work.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => usrClk,
+         asyncRst => txRst,
+         syncRst  => txRstSync);
+
+   usrReset <= usrRst or txRstSync;
+
    U_StoreThenForward : entity work.AxiStreamFifoV2
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
-         INT_PIPE_STAGES_G   => 0,
-         PIPE_STAGES_G       => 1,
-         SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 0,      -- 0 = only when frame ready (prevent tValid gap in outbound frame)
+         SLAVE_READY_EN_G    => true,   -- Using TREADY for flow control
+         VALID_THOLD_G       => 0,  -- 0 = only when frame ready (prevent tValid gap in outbound frame)
          -- FIFO configurations
-         BRAM_EN_G           => true,
-         GEN_SYNC_FIFO_G     => false,
-         CASCADE_SIZE_G      => 1,
-         FIFO_ADDR_WIDTH_G   => 9,
+         BRAM_EN_G           => false,  -- false: LUTRAM
+         GEN_SYNC_FIFO_G     => false,  -- ASYNC FIFO
+         FIFO_ADDR_WIDTH_G   => 6,      -- 2^6 = 64 > fixed packet size = 41
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
