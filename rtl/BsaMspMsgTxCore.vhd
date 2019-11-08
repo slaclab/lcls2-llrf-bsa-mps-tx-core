@@ -16,8 +16,12 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+
+library lcls2_llrf_bsa_mps_tx_core; 
 
 entity BsaMspMsgTxCore is
    generic (
@@ -85,7 +89,7 @@ begin
    ------------
    -- TX Module
    ------------
-   U_Tx : entity work.BsaMpsMsgTxFramer
+   U_Tx : entity lcls2_llrf_bsa_mps_tx_core.BsaMpsMsgTxFramer
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -129,7 +133,7 @@ begin
    -------------
    -- GTX Module
    -------------
-   U_Gtx : entity work.BsaMpsMsgTxGtx7
+   U_Gtx : entity lcls2_llrf_bsa_mps_tx_core.BsaMpsMsgTxGtx7
       generic map (
          TPD_G                 => TPD_G,
          CPLL_REFCLK_SEL_G     => CPLL_REFCLK_SEL_G,

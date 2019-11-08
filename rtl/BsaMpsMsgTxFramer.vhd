@@ -18,9 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-use work.StdRtlPkg.all;
-use work.AxiStreamPkg.all;
-use work.SsiPkg.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+library lcls2_llrf_bsa_mps_tx_core; 
 
 entity BsaMpsMsgTxFramer is
    generic (
@@ -87,7 +91,7 @@ begin
    ---------------------
    -- Data Packer Module
    ---------------------
-   U_Packer : entity work.BsaMpsMsgTxPacker
+   U_Packer : entity lcls2_llrf_bsa_mps_tx_core.BsaMpsMsgTxPacker
       generic map (
          TPD_G => TPD_G)
       port map (
@@ -216,7 +220,7 @@ begin
    --------------------
    -- CRC Engine
    --------------------
-   U_Crc32 : entity work.Crc32Parallel
+   U_Crc32 : entity surf.Crc32Parallel
       generic map (
          BYTE_WIDTH_G => 2)
       port map (
