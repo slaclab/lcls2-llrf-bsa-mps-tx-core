@@ -262,7 +262,7 @@ begin
          SLAVE_READY_EN_G    => true,   -- Using TREADY for flow control
          VALID_THOLD_G       => 0,  -- 0 = only when frame ready (prevent tValid gap in outbound frame)
          -- FIFO configurations
-         BRAM_EN_G           => false,  -- false: LUTRAM
+         MEMORY_TYPE_G       => "distributed",
          GEN_SYNC_FIFO_G     => false,  -- ASYNC FIFO
          FIFO_ADDR_WIDTH_G   => 6,      -- 2^6 = 64 > fixed packet size = 41
          -- AXI Stream Port Configurations
