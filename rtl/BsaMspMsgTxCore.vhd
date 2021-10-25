@@ -60,7 +60,7 @@ entity BsaMspMsgTxCore is
       bsaSevr9      : in  slv(1 downto 0);
       bsaSevr10     : in  slv(1 downto 0);
       bsaSevr11     : in  slv(1 downto 0);
-      mpsPermit     : in  slv(3 downto 0);
+      mpsPermit     : in  slv(7 downto 0);
       -- GTX's Clock and Reset
       cPllRefClk    : in  sl;           -- 185.714 MHz 
       stableClk     : in  sl;           -- GTX's stable clock reference

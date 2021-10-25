@@ -36,7 +36,7 @@ entity BsaMpsMsgTxPacker is
       userValue    : in  slv(127 downto 0);
       bsaQuantity  : in  Slv32Array(11 downto 0);
       bsaSevr      : in  Slv2Array(11 downto 0);
-      mpsPermit    : in  slv(3 downto 0);
+      mpsPermit    : in  slv(7 downto 0);
       -- TX Data Interface
       txClk        : in  sl;
       txRst        : in  sl;
@@ -58,7 +58,7 @@ architecture rtl of BsaMpsMsgTxPacker is
       BSA_DATA_S);
 
    type RegType is record
-      mpsPermit   : slv(3 downto 0);
+      mpsPermit   : slv(7 downto 0);
       timeStamp   : slv(63 downto 0);
       userValue   : slv(127 downto 0);
       bsaQuantity : Slv32Array(11 downto 0);
@@ -171,7 +171,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move the data
                v.txMaster.tValid              := '1';
-               v.txMaster.tData(3 downto 0)   := r.mpsPermit;
+               v.txMaster.tData(3 downto 0)   := r.mpsPermit(3 downto 0);
                v.txMaster.tData(5 downto 4)   := r.bsaSevr(0);
                v.txMaster.tData(7 downto 6)   := r.bsaSevr(1);
                v.txMaster.tData(9 downto 8)   := r.bsaSevr(2);
@@ -187,7 +187,7 @@ begin
             if (v.txMaster.tValid = '0') then
                -- Move the data
                v.txMaster.tValid              := '1';
-               v.txMaster.tData(3 downto 0)   := x"0";  -- Spare field
+               v.txMaster.tData(3 downto 0)   := r.mpsPermit(7 downto 4);
                v.txMaster.tData(5 downto 4)   := r.bsaSevr(6);
                v.txMaster.tData(7 downto 6)   := r.bsaSevr(7);
                v.txMaster.tData(9 downto 8)   := r.bsaSevr(8);
