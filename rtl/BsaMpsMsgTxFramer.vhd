@@ -38,7 +38,7 @@ entity BsaMpsMsgTxFramer is
       userValue    : in  slv(127 downto 0);
       bsaQuantity  : in  Slv32Array(11 downto 0);
       bsaSevr      : in  Slv2Array(11 downto 0);
-      mpsPermit    : in  slv(3 downto 0);
+      mpsPermit    : in  slv(7 downto 0);
       -- TX Data Interface (txClk domain)
       txClk        : in  sl;
       txRst        : in  sl;
